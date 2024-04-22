@@ -98,16 +98,23 @@ class CodeGenerator (Visitor):
         
         for var_ref in assign_stmt.lvalue:
             var_name =var_ref.var_name.lexeme
-            if var_ref.array_expr:
-                var_ref.array_expr.accept(self)
-                self.add_instr(SETI())
-
+            #print(var_name)
             index = self.var_table.get(var_name)
+            
+            if var_ref.array_expr:
+                self.add_instr(STORE(999))
+                iod = self.var_table.get(var_name)
+                self.add_instr(LOAD(iod))
+                var_ref.array_expr.accept(self)
+                self.add_instr(LOAD(999))
+                self.add_instr(SETI())
+                break
+
             if index is None:
-                # it's a struct field
                 self.add_instr(SETF(var_name))
+                
             else:
-                # If it's in the variable table
+                self.add_instr(DUP())
                 self.add_instr(STORE(index))
     
     def visit_while_stmt(self, while_stmt):
@@ -156,38 +163,70 @@ class CodeGenerator (Visitor):
     
     def visit_if_stmt(self, if_stmt):
         # TODO
+        else_if_bool = False
         if_stmt.if_part.condition.accept(self)
-        jmp_instr = JMPF(-1)
-        jmp_instr_index = len(self.curr_template.instructions)
-        self.add_instr(jmp_instr)
+        
+        jmp_instr_if = JMPF(-1)
+        jmp_instr = len(self.curr_template.instructions)
+        self.add_instr(jmp_instr_if)
 
         self.var_table.push_environment()
         for stmt in if_stmt.if_part.stmts:
             stmt.accept(self)
-        end_index = len(self.curr_template.instructions)
-        self.curr_template.instructions[jmp_instr_index].operand = end_index
+        jmp_end_if = JMP(-1)
+        jmp_end_if_index = len(self.curr_template.instructions)
+        self.add_instr(jmp_end_if)
+        end_index_if = len(self.curr_template.instructions)
         self.var_table.pop_environment()
-
+        
+        # Update the jmpf
+        self.curr_template.instructions[jmp_instr].operand = end_index_if
+        
+        index_arr = []
         for else_if in if_stmt.else_ifs:
+            else_if_bool = True
             else_if.condition.accept(self)
-            jmp_instr = JMPF(-1)
-            jmp_instr_else_index = len(self.curr_template.instructions)
-            self.add_instr(jmp_instr)
+
+            jmp_instr_else_if = JMPF(-1)
+            jmp_instr = len(self.curr_template.instructions)
+            self.add_instr(jmp_instr_else_if)
 
             self.var_table.push_environment()
-            for stmt in if_stmt.if_part.stmts:
+            for stmt in else_if.stmts:
                 stmt.accept(self)
-            end_index = len(self.curr_template.instructions)
-            self.curr_template.instructions[jmp_instr_else_index].operand = end_index
-            self.var_table.pop_environment()
-        
-        """if if_stmt.else_stmts:
-            self.var_table.push_environment()
-            for stmt in if_stmt.else_stmts:
-                stmt.accept(self)
-            self.var_table.pop_environment()"""
             
+            self.var_table.pop_environment()
+
+            # Update the conditional jump instruction to point to the end of the else-if block
+
+            # Jump to the end of the if statement if an else-if condition was true
+            jmp_outside_if = JMP(-1)
+            jmp_outside_if_index = len(self.curr_template.instructions)
+            self.add_instr(jmp_outside_if)
+            index_arr.append(jmp_outside_if_index)
+
+            end_index_else_if = len(self.curr_template.instructions)
+            self.curr_template.instructions[jmp_instr].operand = end_index_else_if
+
+            # Update the jump instructions at the end of the if block to skip the else-if and else blocks
+            self.curr_template.instructions[jmp_end_if_index].operand = end_index_else_if
+
+        if if_stmt.else_stmts:
+                else_start = len(self.curr_template.instructions)
+                self.curr_template.instructions[jmp_instr].operand = else_start
+                self.var_table.push_environment()
+                for stmt in if_stmt.else_stmts:
+                    stmt.accept(self)
+                self.var_table.pop_environment()
         
+                self.add_instr(NOP())
+                end_index_else = len(self.curr_template.instructions)
+
+        end_index = len(self.curr_template.instructions)
+        self.curr_template.instructions[jmp_end_if_index].operand = end_index
+        for i in range(len(index_arr)):
+            self.curr_template.instructions[index_arr[i]].operand = end_index
+                    
     
     def visit_call_expr(self, call_expr):
         # TODO
@@ -295,11 +334,13 @@ class CodeGenerator (Visitor):
         if new_rvalue.array_expr:
             new_rvalue.array_expr.accept(self)
             self.add_instr(ALLOCA())
+            self.add_instr(DUP())
         else:
             struct_name = new_rvalue.type_name.lexeme
             struct_def = self.struct_defs[struct_name]
 
             self.add_instr(ALLOCS())
+            self.add_instr(DUP())
             field_index = 0
             for param in new_rvalue.struct_params:
                 self.add_instr(DUP())
@@ -307,7 +348,8 @@ class CodeGenerator (Visitor):
                 field_name = struct_def.fields[field_index].var_name.lexeme
                 field_index += 1
                 self.add_instr(SETF(field_name))
-            self.add_instr(DUP())
+            
+            
             
     
 
@@ -318,12 +360,16 @@ class CodeGenerator (Visitor):
             index = self.var_table.get(var_name)
 
             if var_ref.array_expr:
+                iod = self.var_table.get(var_name)
+                self.add_instr(LOAD(iod))
                 var_ref.array_expr.accept(self)
                 self.add_instr(GETI())
+                break
 
             if index is None:
                 self.add_instr(GETF(var_name))
             else:
                 self.add_instr(LOAD(index))
+                
                 
             
