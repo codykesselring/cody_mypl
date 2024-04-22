@@ -1,0 +1,5 @@
+struct T {int x;} 
+void main() { 
+    T t = new T(3); 
+    print(t.x); 
+} 

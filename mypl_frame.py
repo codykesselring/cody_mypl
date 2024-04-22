@@ -16,7 +16,7 @@ from mypl_opcode import OpCode
 @dataclass
 class VMFrameTemplate:
 
-"""A VM function-call frame template (type)."""
+#"""A VM function-call frame template (type)."""
     function_name: str
     arg_count: int
     instructions: list['VMInstr'] = field(default_factory=list) 
