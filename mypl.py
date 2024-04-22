@@ -17,7 +17,8 @@ from mypl_token import TokenType, Token
 from mypl_simple_parser import SimpleParser
 from mypl_ast_parser import ASTParser
 from mypl_printer import PrintVisitor
-from mypl_semantic_checker import SemanticChecker
+#from mypl_semantic_checker import SemanticChecker
+from semantic_fake import SemanticChecker
 from mypl_code_gen import CodeGenerator
 from mypl_vm import VM
 

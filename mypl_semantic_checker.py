@@ -383,6 +383,7 @@ class SemanticChecker(Visitor):
                     
             else:
                 self.error(f"Variable '{var_name}' not found", var_ref.var_name)
+                
     def visit_call_expr(self, call_expr):
         # TODO
         fun_name = call_expr.fun_name.lexeme

@@ -1,5 +1,9 @@
-struct T {int x;} 
-void main() { 
-    T t = new T(3); 
-    print(t.x); 
-} 
+struct T {int x; bool y;}
+void main() {
+  T t = new T(3, true);
+  t.x = t.x + 1;
+  t.y = not t.y;
+  print(t.x);
+  print(" ");
+  print(t.y);
+}

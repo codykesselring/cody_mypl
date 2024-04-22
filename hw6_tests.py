@@ -589,7 +589,7 @@ def test_consecutive_ifs(capsys):
     print(captured.out)
     assert captured.out == '-12-'
 
-"""def test_simple_else_ifs(capsys):
+def test_simple_else_ifs(capsys):
     program = (
         'void main() { \n'
         '  print("-"); \n'
@@ -653,7 +653,7 @@ def test_many_else_ifs(capsys):
     build(program).run()
     captured = capsys.readouterr()
     print(captured.out)
-    assert captured.out == '-3-'"""
+    assert captured.out == '-3-'
     
 
 #----------------------------------------------------------------------

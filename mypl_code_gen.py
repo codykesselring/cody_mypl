@@ -94,21 +94,21 @@ class CodeGenerator (Visitor):
 
     def visit_assign_stmt(self, assign_stmt):
         # TODO
-        for lvalue in assign_stmt.lvalue:
-            if lvalue.array_expr:
-                var_name =lvalue.var_name.lexeme
-                index = self.var_table.get(var_name)
-                self.add_instr(LOAD(index))
-                lvalue.array_expr.accept(self)
-                assign_stmt.expr.accept(self)
+        assign_stmt.expr.accept(self)
+        
+        for var_ref in assign_stmt.lvalue:
+            var_name =var_ref.var_name.lexeme
+            if var_ref.array_expr:
+                var_ref.array_expr.accept(self)
                 self.add_instr(SETI())
 
+            index = self.var_table.get(var_name)
+            if index is None:
+                # it's a struct field
+                self.add_instr(SETF(var_name))
             else:
-                assign_stmt.expr.accept(self)
-                var_name =lvalue.var_name.lexeme
-                index = self.var_table.get(var_name)
+                # If it's in the variable table
                 self.add_instr(STORE(index))
-
     
     def visit_while_stmt(self, while_stmt):
         # TODO
@@ -307,30 +307,23 @@ class CodeGenerator (Visitor):
                 field_name = struct_def.fields[field_index].var_name.lexeme
                 field_index += 1
                 self.add_instr(SETF(field_name))
+            self.add_instr(DUP())
+            
     
+
     def visit_var_rvalue(self, var_rvalue):
         # TODO
         for var_ref in var_rvalue.path:
             var_name = var_ref.var_name.lexeme 
             index = self.var_table.get(var_name)
-            self.add_instr(LOAD(index))
 
             if var_ref.array_expr:
                 var_ref.array_expr.accept(self)
                 self.add_instr(GETI())
 
-            elif self.var_table.get(var_name):
-                if var_name in self.struct_defs:
-                    struct_def = self.struct_defs[var_name]
-                    for var_ref in var_rvalue.path:
-                        field_name = var_ref.var_name.lexeme
-                        for field in struct_def.fields:
-                            if field.var_name.lexeme == field_name:
-                                self.add_instr(GETF(field_name))
-                                #in case of multiple struct paths
-                                if field.data_type.type_name.lexeme in self.struct_defs:
-                                    struct_def = self.struct_defs[field.data_type.type_name.lexeme]
-                else:
-                    pass
-
+            if index is None:
+                self.add_instr(GETF(var_name))
+            else:
+                self.add_instr(LOAD(index))
+                
             
