@@ -338,7 +338,7 @@ class VM:
                 value = frame.operand_stack.pop()
                 oid = frame.operand_stack.pop()
                 field = instr.operand
-                if value == None or field == None or oid == None:
+                if field == None or oid == None:
                     self.error("struct access can't have None type")
                 elif oid not in self.struct_heap:
                     self.error("Invalid object ID for struct access")
@@ -347,12 +347,10 @@ class VM:
             elif instr.opcode == OpCode.GETF:
                 oid = frame.operand_stack.pop()
                 field = instr.operand
-                if field == None or oid == None:
+                if oid == None:
                     self.error("struct access can't have None type")
                 value = self.struct_heap[oid][field]
-                if value == None:
-                    self.error("struct access can't have None type")
-                elif oid not in self.struct_heap:
+                if oid not in self.struct_heap:
                     self.error("Invalid object ID for struct access")
                 frame.operand_stack.append(value)
 
@@ -373,7 +371,7 @@ class VM:
                 if value == None or index == None or oid == None:
                     self.error("array access can't have None type")
                 elif oid not in self.array_heap or index < 0 or index >= len(self.array_heap[oid]):
-                    self.error("Invalid index or object ID for array access")
+                    self.error(f"Invalid index or object ID for array access {value} {index} {oid}")
                 self.array_heap[oid][index] = value
             
             elif instr.opcode == OpCode.GETI:

@@ -94,29 +94,54 @@ class CodeGenerator (Visitor):
 
     def visit_assign_stmt(self, assign_stmt):
         # TODO
-        assign_stmt.expr.accept(self)
-        
-        for var_ref in assign_stmt.lvalue:
-            var_name =var_ref.var_name.lexeme
-            #print(var_name)
+        if len(assign_stmt.lvalue) == 1:
+            # Simple variable assignment
+            var_name = assign_stmt.lvalue[0].var_name.lexeme
             index = self.var_table.get(var_name)
+            if assign_stmt.lvalue[0].array_expr:
+                oid = self.var_table.get(var_name)
+                self.add_instr(LOAD(oid))
+                assign_stmt.lvalue[0].array_expr.accept(self)
+                assign_stmt.expr.accept(self)
+                self.add_instr(SETI())
+            else:
+                assign_stmt.expr.accept(self)
+                self.add_instr(STORE(index))
+        else:
+            var_name = assign_stmt.lvalue[0].var_name.lexeme
+            index = self.var_table.get(var_name)
+            if assign_stmt.lvalue[0].array_expr:
+                # If it's an array element, handle it differently
+                self.add_instr(LOAD(index))
+                assign_stmt.lvalue[0].array_expr.accept(self)
+                self.add_instr(GETI())
+            else:
+                self.add_instr(LOAD(index))
+
+            for var_ref in assign_stmt.lvalue[1:-1]:#skips first and last var_ref
+                field_name = var_ref.var_name.lexeme
+                self.add_instr(GETF(field_name))
+                if var_ref.array_expr:
+                    var_ref.array_expr.accept(self)
+                    self.add_instr(GETI())
             
-            if var_ref.array_expr:
+            assign_stmt.expr.accept(self)
+            
+            assign_field = assign_stmt.lvalue[-1].var_name.lexeme
+            if assign_stmt.lvalue[-1].array_expr:
                 self.add_instr(STORE(999))
-                iod = self.var_table.get(var_name)
-                self.add_instr(LOAD(iod))
-                var_ref.array_expr.accept(self)
+                self.add_instr(LOAD(999))
+                self.add_instr(SETF(assign_field))
+                self.add_instr(LOAD(999))
+                self.add_instr(GETF(assign_field))
+                assign_stmt.lvalue[-1].array_expr.accept(self)
                 self.add_instr(LOAD(999))
                 self.add_instr(SETI())
-                break
-
-            if index is None:
-                self.add_instr(SETF(var_name))
                 
             else:
-                self.add_instr(DUP())
-                self.add_instr(STORE(index))
-    
+                self.add_instr(SETF(assign_field))
+            
+        
     def visit_while_stmt(self, while_stmt):
         # TODO
         start_index = len(self.curr_template.instructions)
@@ -197,9 +222,6 @@ class CodeGenerator (Visitor):
             
             self.var_table.pop_environment()
 
-            # Update the conditional jump instruction to point to the end of the else-if block
-
-            # Jump to the end of the if statement if an else-if condition was true
             jmp_outside_if = JMP(-1)
             jmp_outside_if_index = len(self.curr_template.instructions)
             self.add_instr(jmp_outside_if)
@@ -207,7 +229,6 @@ class CodeGenerator (Visitor):
 
             end_index_else_if = len(self.curr_template.instructions)
             self.curr_template.instructions[jmp_instr].operand = end_index_else_if
-
             # Update the jump instructions at the end of the if block to skip the else-if and else blocks
             self.curr_template.instructions[jmp_end_if_index].operand = end_index_else_if
 
@@ -334,13 +355,11 @@ class CodeGenerator (Visitor):
         if new_rvalue.array_expr:
             new_rvalue.array_expr.accept(self)
             self.add_instr(ALLOCA())
-            self.add_instr(DUP())
         else:
             struct_name = new_rvalue.type_name.lexeme
             struct_def = self.struct_defs[struct_name]
 
             self.add_instr(ALLOCS())
-            self.add_instr(DUP())
             field_index = 0
             for param in new_rvalue.struct_params:
                 self.add_instr(DUP())
@@ -348,28 +367,35 @@ class CodeGenerator (Visitor):
                 field_name = struct_def.fields[field_index].var_name.lexeme
                 field_index += 1
                 self.add_instr(SETF(field_name))
+                
             
-            
-            
-    
-
     def visit_var_rvalue(self, var_rvalue):
         # TODO
-        for var_ref in var_rvalue.path:
-            var_name = var_ref.var_name.lexeme 
+        if len(var_rvalue.path) == 1:
+            # Simple variable assignment
+            var_name = var_rvalue.path[0].var_name.lexeme 
             index = self.var_table.get(var_name)
-
-            if var_ref.array_expr:
+            if var_rvalue.path[0].array_expr:
                 iod = self.var_table.get(var_name)
                 self.add_instr(LOAD(iod))
-                var_ref.array_expr.accept(self)
+                var_rvalue.path[0].array_expr.accept(self)
                 self.add_instr(GETI())
-                break
-
-            if index is None:
-                self.add_instr(GETF(var_name))
             else:
                 self.add_instr(LOAD(index))
-                
-                
-            
+        else:
+            var_name = var_rvalue.path[0].var_name.lexeme
+            index = self.var_table.get(var_name)
+            if var_rvalue.path[0].array_expr:
+                self.add_instr(LOAD(index))
+                var_rvalue.path[0].array_expr.accept(self)
+                self.add_instr(GETI())
+            else:
+                self.add_instr(LOAD(index))
+
+            for var_ref in var_rvalue.path[1:]: #exclues first element
+                field_name = var_ref.var_name.lexeme
+                self.add_instr(GETF(field_name))
+                if var_ref.array_expr:
+                    var_ref.array_expr.accept(self)
+                    self.add_instr(GETI())
+        
