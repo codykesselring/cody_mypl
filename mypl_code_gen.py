@@ -260,6 +260,8 @@ class CodeGenerator (Visitor):
             self.add_instr(LEN())
         elif call_expr.fun_name.lexeme == "get":
             self.add_instr(GETC())
+        elif call_expr.fun_name.lexeme == "input":
+            self.add_instr(READ())
         elif call_expr.fun_name.lexeme == "itos" or call_expr.fun_name.lexeme == "dtos":
             self.add_instr(TOSTR())
         elif call_expr.fun_name.lexeme == "stoi" or call_expr.fun_name.lexeme == "dtoi":

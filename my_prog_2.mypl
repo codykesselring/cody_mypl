@@ -1,0 +1,36 @@
+struct S1 {int x; }
+struct S2 {int x; string y; }
+void main() {
+    S1 p2 = new S1(5);
+    S2 p4 = new S2(5, "happy it's finally over...");
+    print("Contents of p4: ");
+    print(p4.x);
+    print(", ");
+    print(p4.y);
+    print("\n");
+
+    string name;
+    int age;
+
+    // Prompt the user to enter their name
+    print("Enter your name: ");
+    name = input();
+
+    // Prompt the user to enter their age
+    print("Enter your age: ");
+    age = stoi(input());
+    
+
+    // Print a greeting message
+    print("Hello, ");
+    print(name);
+    print("! ");
+
+    // Calculate age after ten years
+    int future_age = age + 10;
+
+    // Print age after ten years
+    print("In ten years, you will be ");
+    print(future_age);
+    print(" years old.\n");
+}
