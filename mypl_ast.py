@@ -110,8 +110,10 @@ class FunDef:
     fun_name: Token
     params: List[VarDef]
     stmts: List[Stmt]
+    is_method: DataType
     def accept(self, visitor):
         visitor.visit_fun_def(self)
+
 
 @dataclass
 class Program: 
@@ -119,6 +121,7 @@ class Program:
     fun_defs: List[FunDef]
     def accept(self, visitor):
         visitor.visit_program(self)
+
 
 
 # Expression Related Classes

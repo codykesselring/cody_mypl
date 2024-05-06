@@ -144,7 +144,6 @@ class SimpleParser:
             self.stmt()
         self.advance()
 
-
     def params(self):
         """Check for well-formed function formal parameters."""
         # TODO

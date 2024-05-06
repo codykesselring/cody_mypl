@@ -58,7 +58,6 @@ class SemanticChecker(Visitor):
 
         
     # Visitor Functions
-    
     def visit_program(self, program):
         # check and record struct defs
         for struct in program.struct_defs:
@@ -151,7 +150,7 @@ class SemanticChecker(Visitor):
         # TODO
         var_name = var_decl.var_def.var_name.lexeme
         data_type = var_decl.var_def.data_type
-        array_bool = var_decl.var_def.data_type.is_array
+
         if self.symbol_table.exists_in_curr_env(var_name):
             self.error("var decl shadowing error", var_decl.var_def.var_name)
 
@@ -162,32 +161,42 @@ class SemanticChecker(Visitor):
                 self.error(f"type mismatch {data_type} != {self.curr_type}", var_decl.var_def.data_type.type_name)
             
             if self.curr_type.is_array != data_type.is_array and self.curr_type.type_name.token_type != TokenType.VOID_TYPE:
-               self.error(f"array initialization should be a 'new' object, type = {self.curr_type}", var_decl.var_def.var_name)
+               self.error(f"array initialization should be a 'new' object, {self.curr_type} != {data_type}", var_decl.var_def.var_name)
         self.symbol_table.add(var_name, data_type)
 
         
     def visit_assign_stmt(self, assign_stmt):
         # TODO
-        for var_ref in assign_stmt.lvalue:
-            var_name = var_ref.var_name.lexeme
-            if not self.symbol_table.get(var_name):
-                if self.curr_type.type_name.lexeme in self.structs:
-                    struct_def = self.structs[self.curr_type.type_name.lexeme]
-                    field_type = self.get_field_type(struct_def, var_name)
-                    if field_type is None:
-                        self.error(f"Field '{var_name}' does not exist in struct '{self.curr_type.type_name.lexeme}'", var_ref.var_name)
-                    self.curr_type = field_type
-                    lhs_type = self.curr_type
-                else:
-                    self.error(f"Variable '{var_name}' not found", var_ref.var_name)
-            else:
-                lhs_type = self.symbol_table.get(var_name)
+        lhs = None
+        if self.symbol_table.get(assign_stmt.lvalue[0].var_name.lexeme):
+            var_type = self.symbol_table.get(assign_stmt.lvalue[0].var_name.lexeme)
+            var_ref = assign_stmt.lvalue[0]
+            if var_ref.array_expr:
+                var_ref.array_expr.accept(self)
+                if self.curr_type.type_name.token_type != TokenType.INT_TYPE:
+                    self.error('Array index must be an integer', var_ref.array_expr)
+
+            for i in range(1, len(assign_stmt.lvalue)):
+                var_name = assign_stmt.lvalue[i].var_name.lexeme
+                if not var_type.type_name.lexeme in self.structs:
+                    self.error(f'path must be a struct {var_type}', var_ref.array_expr)
+                struct_def = self.structs[var_type.type_name.lexeme]
+                var_type = self.get_field_type(struct_def, var_name)
+                var_ref = assign_stmt.lvalue[i]
+                if var_ref.array_expr:
+                    var_ref.array_expr.accept(self)
+                    if self.curr_type.type_name.token_type != TokenType.INT_TYPE:
+                        self.error('Array index must be an integer', var_ref.array_expr)
+            lhs = var_type
+        else:
+            self.error(f"Variable '{var_name}' not found", var_ref.var_name)
+
 
         if assign_stmt.expr:
             assign_stmt.expr.accept(self)
             rhs_type = self.curr_type
-            if lhs_type.type_name.token_type != rhs_type.type_name.token_type and rhs_type.type_name.token_type != TokenType.VOID_TYPE:
-                self.error("type mismatch", self.curr_type.type_name)
+            if lhs.type_name.token_type != rhs_type.type_name.token_type and lhs.type_name.token_type != TokenType.VOID_TYPE and rhs_type.type_name.token_type != TokenType.VOID_TYPE:
+                self.error(f"type mismatch {lhs.type_name.token_type } != {rhs_type.type_name.token_type}", self.curr_type.type_name)
              
     def visit_while_stmt(self, while_stmt):
         # TODO
@@ -222,8 +231,6 @@ class SemanticChecker(Visitor):
         if self.curr_type.type_name.token_type != TokenType.BOOL_TYPE or self.curr_type.is_array == True:
             self.error("if condition must have bool type", self.curr_type.type_name)
             
-            
-        
         self.symbol_table.push_environment()
         for stmt in if_stmt.if_part.stmts:
             stmt.accept(self)
@@ -299,7 +306,6 @@ class SemanticChecker(Visitor):
             self.error(f'duplicate variable declaration for "{var_name}"', var_def.var_name)
         
         self.symbol_table.add(var_name, var_def.data_type)
-
         self.curr_type = self.symbol_table.get(var_name)
         
     def visit_simple_term(self, simple_term):
@@ -339,50 +345,57 @@ class SemanticChecker(Visitor):
             if self.curr_type.type_name.token_type != TokenType.INT_TYPE:
                 self.error(f'array reference must be an integer, type = {self.curr_type.type_name}', new_rvalue.type_name)
             array_bool = True
-
         else:
             struct_def = self.structs[type_name]
+
             if type_name not in self.structs:
                 self.error(f'undefined struct type "{type_name}"', new_rvalue.type_name)
             if len(struct_params) != len(struct_def.fields):
                 self.error(f'incorrect number of parameters for struct "{type_name}"', new_rvalue.type_name)
             
-            for i, expr in enumerate(struct_params):
-                expr.accept(self)
-                if self.curr_type.type_name.token_type != struct_def.fields[i].data_type.type_name.token_type and self.curr_type.type_name.token_type != TokenType.VOID_TYPE:
-                    self.error(f'struct argument does not match parameter "{type_name}"', new_rvalue.type_name)
+            
+            for field, param in zip(struct_def.fields, struct_params):
+                param.accept(self)
+                param_type = self.curr_type
+                if param_type.type_name.token_type != field.data_type.type_name.token_type and param_type.type_name.token_type != TokenType.VOID_TYPE:
+                    self.error(f'struct argument does not match parameter "{field.var_name}"', None)
+
+                self.symbol_table.add(field.var_name.lexeme, param_type)
 
         self.curr_type = DataType(array_bool, new_rvalue.type_name)
             
     def visit_var_rvalue(self, var_rvalue):
         # TODO
-        for var_ref in var_rvalue.path:
-            var_name = var_ref.var_name.lexeme
-            
-            if self.symbol_table.exists(var_name):
-                var_type = self.symbol_table.get(var_name)
+        if self.symbol_table.get(var_rvalue.path[0].var_name.lexeme):
+            arr_expr_bool = False
+            var_type = self.symbol_table.get(var_rvalue.path[0].var_name.lexeme)
+            var_ref = var_rvalue.path[0]
+            if var_ref.array_expr:
+                arr_expr_bool = True
+                var_ref.array_expr.accept(self)
+                if self.curr_type.type_name.token_type != TokenType.INT_TYPE:
+                    self.error('Array index must be an integer', var_ref.array_expr)
+            self.curr_type = var_type
+            if arr_expr_bool:
+                self.curr_type.is_array = False
+
+            for i in range(1, len(var_rvalue.path)):
+                var_name = var_rvalue.path[i].var_name.lexeme
+                if not var_type.type_name.lexeme in self.structs:
+                    self.error(f'path must be a struct {var_type}', var_ref.array_expr)
+                struct_def = self.structs[var_type.type_name.lexeme]
+                var_type = self.get_field_type(struct_def, var_name)
+                var_ref = var_rvalue.path[i]
                 if var_ref.array_expr:
-                    if not var_type.is_array:
-                        self.error(f'Variable "{var_name}" is not an array', var_ref.var_name)
+                    arr_expr_bool = True
                     var_ref.array_expr.accept(self)
                     if self.curr_type.type_name.token_type != TokenType.INT_TYPE:
                         self.error('Array index must be an integer', var_ref.array_expr)
-                    self.curr_type = DataType(False, var_type.type_name)
-                else:
-                    self.curr_type = var_type
-            
-            elif self.curr_type.type_name.lexeme in self.structs:
-                struct_def = self.structs[self.curr_type.type_name.lexeme]
-                if var_ref.array_expr:
-                    self.error('Struct references cannot have array expressions', var_ref.array_expr)
-                else:
-                    field_type = self.get_field_type(struct_def, var_name)
-                    if field_type is None:
-                        self.error(f"Field '{var_name}' does not exist in struct '{self.curr_type.type_name.lexeme}'", var_ref.var_name)
-                    self.curr_type = field_type
-                    
-            else:
-                self.error(f"Variable '{var_name}' not found", var_ref.var_name)
+                self.curr_type = var_type
+                if arr_expr_bool:
+                    self.curr_type.is_array = False
+        else:
+            self.error(f"Variable '{var_rvalue.path[0].var_name}' not found", var_rvalue.path[0].var_name)
                 
     def visit_call_expr(self, call_expr):
         # TODO
@@ -394,7 +407,7 @@ class SemanticChecker(Visitor):
         elif fun_name in BUILT_INS:
             pass
         elif len(self.functions[fun_name].params) != len(args):
-            self.error(f'mismatch # of func call args to definition params"{fun_name}"', call_expr.fun_name)
+            self.error(f'mismatch # of func call args to definition params"{fun_name}", {len(self.functions[fun_name].params)} != {len(args)}', call_expr.fun_name)
 
         if fun_name in self.functions:
             for i in range(len(args)):
@@ -405,9 +418,10 @@ class SemanticChecker(Visitor):
                 if self.curr_type.type_name.token_type == TokenType.VOID_TYPE:
                     pass
                 elif self.curr_type.type_name.lexeme != param_type.lexeme:
-                    self.error("Function call arguments do not match function definition params", self.curr_type.type_name)
+                    self.error(f"Function call arguments do not match function definition params  {self.curr_type} != {param_type}", self.curr_type.type_name)
             self.curr_type = self.functions[fun_name].return_type
-        if fun_name == 'print':
+        
+        elif fun_name == 'print':
             if not args:
                 self.error('print function expects at least one argument', None)
             if len(args)>1:
@@ -423,8 +437,6 @@ class SemanticChecker(Visitor):
             if len(args) != 0:
                 self.error("input() has no arguments", None)
             self.curr_type = DataType(False, Token(TokenType.STRING_TYPE, 'string', call_expr.fun_name.line, call_expr.fun_name.column))
-
-
 
         elif fun_name == 'itos':
             if len(args) != 1:

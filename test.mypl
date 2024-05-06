@@ -1,0 +1,31 @@
+class Test{
+    string name; 
+    int id; 
+    
+    void nothing(){
+        print("AAAAAHHH");
+    }
+}
+class Test2{
+    string name; 
+    int id;
+    
+    void farkle(){
+        print("HUMANAHUMANA!\n");
+    }
+    void add_id(int x, int y){
+        this.id = this.id + x + y;
+    }
+}
+
+void main(){
+    Test obj = new Test("John", 123);
+    Test2 lobject = new Test2("John", 123);
+
+    //print(obj.name);
+    print(obj.id);
+    print("\n");
+    lobject.farkle();
+    lobject.add_id(2, 1);
+    print(lobject.id);
+}

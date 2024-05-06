@@ -1,0 +1,5 @@
+struct S1 {double val; array S1 s;}
+void main() {
+  S1 p = new S1(null, null);
+  p.s[0].s.val = 5.0;
+}

@@ -54,7 +54,7 @@ def run_parse_mode(in_stream):
     """
     try: 
         lexer = Lexer(in_stream)
-        parser = SimpleParser(lexer)
+        parser = ASTParser(lexer)
         parser.parse()
     except MyPLError as ex:
         print(ex)

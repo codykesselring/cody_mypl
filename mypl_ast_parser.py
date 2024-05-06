@@ -22,6 +22,7 @@ class ASTParser:
         """
         self.lexer = lexer
         self.curr_token = None
+        self.in_method = False
 
         
     def parse(self):
@@ -29,10 +30,10 @@ class ASTParser:
         program_node = Program([], [])
         self.advance()
         while not self.match(TokenType.EOS):
-            if self.match(TokenType.STRUCT):
+            if self.match(TokenType.STRUCT) or self.match(TokenType.CLASS):
                 self.struct_def(program_node)
             else:
-                self.fun_def(program_node)
+                self.fun_def(program_node, None, None, False, None)
         self.eat(TokenType.EOS, 'expecting EOF')
         return program_node
 
@@ -119,25 +120,36 @@ class ASTParser:
     # them to build the corresponding AST objects.
     
     def struct_def(self, program_node):
+        class_bool = False
+        if self.match(TokenType.CLASS):
+            class_bool = True
         self.advance()
         if self.match(TokenType.ID):
             struct_name = self.curr_token
             self.advance()
             self.eat(TokenType.LBRACE, "expecting left brace")
-        fields = self.fields()
-        self.eat(TokenType.RBRACE, "expecting closing brace")
+        fields = self.fields(program_node, struct_name)
+        while class_bool and not self.match(TokenType.RBRACE):
+            self.fun_def(program_node, None, None, True, struct_name)
+        self.eat(TokenType.RBRACE, "expecting rbrace")
         struct_def_node = StructDef(struct_name, fields)
         program_node.struct_defs.append(struct_def_node)
 
-    def fields(self):
+    def fields(self, program_node, struct_name):
         fields = []
         while not self.match(TokenType.RBRACE):
             data_type = self.data_type()
             var_name = self.curr_token
             self.eat(TokenType.ID, "expecting variable name")
-            self.eat(TokenType.SEMICOLON, "expecting semicolon")
-            var_def_node = VarDef(data_type, var_name)
-            fields.append(var_def_node)
+            if self.match(TokenType.SEMICOLON):
+                self.eat(TokenType.SEMICOLON, "expecting semicolon")
+                var_def_node = VarDef(data_type, var_name)
+                fields.append(var_def_node)
+            elif self.match(TokenType.LPAREN): #it's a method
+                self.advance()
+                self.fun_def(program_node, data_type, var_name, True, struct_name)
+                break
+
         return fields
 
     def data_type(self):
@@ -169,20 +181,32 @@ class ASTParser:
         else:
             self.error("not a base type")
     
-    def fun_def(self, program_node):
-        return_type = self.data_type()
-        fun_name = self.curr_token
-        self.eat(TokenType.ID, "expecting function name")
-        self.eat(TokenType.LPAREN, "expect left paren")
+    def fun_def(self, program_node, data_type, var_name, is_method, struct_name):
+        if is_method:
+            self.in_method = True
+        if data_type == None and var_name == None:
+            return_type = self.data_type()
+            fun_name = self.curr_token
+            self.eat(TokenType.ID, "expecting function name")
+            self.eat(TokenType.LPAREN, "expect left paren")
+        else :
+            return_type = data_type
+            fun_name = var_name
         params = self.params()
         self.eat(TokenType.RPAREN, "missing closing paren")
         self.eat(TokenType.LBRACE, "expect left brace")
         stmts = []
-        while not self.match(TokenType.RBRACE): #COULD BE WRONG
+        while not self.match(TokenType.RBRACE):
             stmt = self.stmt()
             stmts.append(stmt)
         self.advance()
-        fun_def_node = FunDef(return_type, fun_name, params, stmts)
+        if is_method:
+            in_method = False
+            fun_name.lexeme = fun_name.lexeme
+            params.insert(0, VarDef(DataType(False, struct_name), Token(TokenType.ID, "this", struct_name.line, struct_name.column)))
+            fun_def_node = FunDef(return_type, fun_name, params, stmts, True)
+        else:
+            fun_def_node = FunDef(return_type, fun_name, params, stmts, False)
         program_node.fun_defs.append(fun_def_node)
         
     def params(self):
@@ -192,8 +216,8 @@ class ASTParser:
             var_name = self.curr_token
             self.eat(TokenType.ID, "expecting id")
             params.append(VarDef(data_type, var_name))
-            while self.match(TokenType.COMMA):  # corrected from not self.match(TokenType.RPAREN)
-                self.eat(TokenType.COMMA, "expecting comma")
+            while self.match(TokenType.COMMA): 
+                self.advance()
                 data_type = self.data_type()
                 var_name = self.curr_token
                 self.eat(TokenType.ID, "expecting id")
@@ -243,7 +267,6 @@ class ASTParser:
         else:
             data_type = DataType(False, data_type_token)
         
-        
         id_token = self.curr_token
         self.eat(TokenType.ID, "expecting vdecl id")
         var_def = VarDef(data_type, id_token)
@@ -261,48 +284,75 @@ class ASTParser:
             self.error("must have expression after return")
         return ReturnStmt(self.expr())
         
+
     def call_expr(self, id_token):
         self.advance()
         args = []
-        if not self.match(TokenType.RPAREN):
-            if self.match_any([TokenType.INT_TYPE, TokenType.DOUBLE_TYPE, TokenType.BOOL_TYPE, TokenType.STRING_TYPE, TokenType.NULL_VAL, TokenType.NEW, TokenType.LPAREN, TokenType.INT_VAL, TokenType.DOUBLE_VAL, TokenType.BOOL_VAL, TokenType.STRING_VAL, TokenType.ID]):
+        if self.match_any([TokenType.INT_TYPE, TokenType.DOUBLE_TYPE, TokenType.BOOL_TYPE, TokenType.STRING_TYPE, TokenType.NULL_VAL, TokenType.NEW, TokenType.LPAREN, TokenType.INT_VAL, TokenType.DOUBLE_VAL, TokenType.BOOL_VAL, TokenType.STRING_VAL, TokenType.ID]):
+            args.append(self.expr())
+            while not self.match(TokenType.RPAREN):
+                self.eat(TokenType.COMMA, "expecting comma")
                 args.append(self.expr())
-                while not self.match(TokenType.RPAREN):
-                    self.eat(TokenType.COMMA, "expecting comma")
-                    args.append(self.expr())
         self.eat(TokenType.RPAREN, "expecting closing paren")
         return CallExpr(id_token, args)
-    
 
 
     def assign_stmt(self, id_token):
-        lvalue = self.lvalue(id_token)
-        self.eat(TokenType.ASSIGN, "expecting assign")
-        expr = self.expr()
-        return AssignStmt(lvalue, expr)
+        lvalue, is_call_expr = self.lvalue(id_token)
+        
+        
+        if is_call_expr:
+            return lvalue
+        else:
+            self.eat(TokenType.ASSIGN, "expecting assign")
+            expr = self.expr()
+            return AssignStmt(lvalue, expr)
     
 
     def lvalue(self, id_token):
         lvalue = []
-        var_name = id_token
-        array_expr = None
-        if self.match(TokenType.LBRACKET):
-            self.advance()
-            array_expr = self.expr()
-            self.eat(TokenType.RBRACKET, "expecting left bracket")
-        lvalue.append(VarRef(var_name, array_expr))
-        if self.match(TokenType.DOT):
-            while self.match(TokenType.DOT):
-                array_expr = None
+        is_call_expr = False
+        if id_token.lexeme == "this":
+            if not self.in_method:
+                self.error("Cannot use 'this' outside of a method.")
+            else:
+                lvalue.append(VarRef(id_token, None))
+        else:
+            var_name = id_token
+            array_expr = None
+            if self.match(TokenType.LBRACKET):
                 self.advance()
-                var_name = self.curr_token
-                self.eat(TokenType.ID, "expecting id")
-                if self.match(TokenType.LBRACKET):
-                    self.advance()
-                    array_expr = self.expr()
-                    self.eat(TokenType.RBRACKET, "expecting right bracket")
-                lvalue.append(VarRef(var_name, array_expr))
-        return lvalue
+                array_expr = self.expr()
+                self.eat(TokenType.RBRACKET, "expecting left bracket")
+            lvalue.append(VarRef(var_name, array_expr))
+            
+        while self.match(TokenType.DOT):
+            array_expr = None
+            self.advance()
+            var_name = self.curr_token
+            self.eat(TokenType.ID, "expecting id")
+            if self.match(TokenType.LBRACKET):
+                self.advance()
+                array_expr = self.expr()
+                self.eat(TokenType.RBRACKET, "expecting right bracket")
+            elif self.match(TokenType.LPAREN):
+                self.advance()
+                fun_name = var_name
+                args = []
+                if self.match_any([TokenType.INT_TYPE, TokenType.DOUBLE_TYPE, TokenType.BOOL_TYPE, TokenType.STRING_TYPE, TokenType.NULL_VAL, TokenType.NEW, TokenType.LPAREN, TokenType.INT_VAL, TokenType.DOUBLE_VAL, TokenType.BOOL_VAL, TokenType.STRING_VAL, TokenType.ID]):
+                    args.append(self.expr())
+                    while not self.match(TokenType.RPAREN):
+                        self.eat(TokenType.COMMA, "expecting comma")
+                        args.append(self.expr())
+                if len(lvalue) == 1:
+                    args.insert(0, VarRValue(lvalue))
+                else:
+                    args.insert(0, VarRValue(lvalue[:-1]))
+                self.eat(TokenType.RPAREN, "expecting closing paren")
+                is_call_expr = True
+                return CallExpr(fun_name, args), is_call_expr
+            lvalue.append(VarRef(var_name, array_expr))
+        return lvalue, is_call_expr
 
     
     def expr(self):
@@ -326,6 +376,7 @@ class ASTParser:
             rest = self.expr()
         return Expr(not_op, first_term, op, rest)
     
+
     def r_value(self):
         if self.match_any([TokenType.INT_VAL, TokenType.DOUBLE_VAL, TokenType.BOOL_VAL, TokenType.STRING_VAL, TokenType.NULL_VAL]):
             c = SimpleTerm(SimpleRValue(self.curr_token))
@@ -364,6 +415,7 @@ class ASTParser:
         
         return NewRValue(type_name, array_expr, struct_params)
     
+    
     def var_rvalue(self, id_token):
         if id_token is None:
             var_name = self.curr_token
@@ -372,8 +424,9 @@ class ASTParser:
             var_name = id_token
         
         path = []
-        
-        if self.match(TokenType.LBRACKET):
+        if id_token.lexeme == "this":
+            path.append(VarRef(id_token, None))
+        elif self.match(TokenType.LBRACKET):
             self.advance()
             if self.match(TokenType.INT_VAL) or self.match(TokenType.ID):
                 arr_expr = self.expr()
@@ -381,7 +434,6 @@ class ASTParser:
             path.append(VarRef(var_name, arr_expr))
         else:
             path.append(VarRef(var_name, None))
-            
         
         while self.match_any([TokenType.DOT, TokenType.LBRACKET]):
             arr_expr = None
@@ -392,7 +444,7 @@ class ASTParser:
             if self.match(TokenType.LBRACKET):
                 self.advance()
                 if self.match(TokenType.INT_VAL) or self.match(TokenType.ID):
-                    arr_expr = self.expr()
+                    arr_expr = self.expr()  
                 self.eat(TokenType.RBRACKET, "expecting right bracket")
             path.append(VarRef(var_name, arr_expr))
         return VarRValue(path)
