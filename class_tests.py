@@ -49,6 +49,8 @@ def test_simple_class():
     p = ASTParser(Lexer(in_stream)).parse()
     assert len(p.fun_defs) == 2
     assert len(p.struct_defs) == 1
+    assert p.struct_defs[0].fields[0].var_name.lexeme == 'name'
+    assert p.fun_defs[0].fun_name.lexeme == 'nothing'
 
 def test_simple_class_with_body():
     in_stream = FileWrapper(io.StringIO(
@@ -174,7 +176,7 @@ def test__method_print(capsys):
     print(captured.out)
     assert captured.out == 'testing, testing...'
 
-def test_two_field_struct(capsys):
+def test_two_field_class_with_method(capsys):
     program = (
         'class Test{\n'
         '  int x;\n'

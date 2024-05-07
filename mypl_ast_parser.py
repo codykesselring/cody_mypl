@@ -201,12 +201,12 @@ class ASTParser:
             stmts.append(stmt)
         self.advance()
         if is_method:
-            in_method = False
+            self.in_method = False
             fun_name.lexeme = fun_name.lexeme
             params.insert(0, VarDef(DataType(False, struct_name), Token(TokenType.ID, "this", struct_name.line, struct_name.column)))
-            fun_def_node = FunDef(return_type, fun_name, params, stmts, True)
+            fun_def_node = FunDef(return_type, fun_name, params, stmts)
         else:
-            fun_def_node = FunDef(return_type, fun_name, params, stmts, False)
+            fun_def_node = FunDef(return_type, fun_name, params, stmts)
         program_node.fun_defs.append(fun_def_node)
         
     def params(self):
@@ -299,7 +299,6 @@ class ASTParser:
 
     def assign_stmt(self, id_token):
         lvalue, is_call_expr = self.lvalue(id_token)
-        
         
         if is_call_expr:
             return lvalue
@@ -424,9 +423,7 @@ class ASTParser:
             var_name = id_token
         
         path = []
-        if id_token.lexeme == "this":
-            path.append(VarRef(id_token, None))
-        elif self.match(TokenType.LBRACKET):
+        if self.match(TokenType.LBRACKET):
             self.advance()
             if self.match(TokenType.INT_VAL) or self.match(TokenType.ID):
                 arr_expr = self.expr()
@@ -441,6 +438,25 @@ class ASTParser:
                 self.advance()
                 var_name = self.curr_token
                 self.eat(TokenType.ID, "expecting var id")
+                if self.match(TokenType.LBRACKET): # for call expression on right side of assign_stmt
+                    self.advance()
+                    array_expr = self.expr()
+                    self.eat(TokenType.RBRACKET, "expecting right bracket")
+                elif self.match(TokenType.LPAREN):
+                    self.advance()
+                    fun_name = var_name
+                    args = []
+                    if self.match_any([TokenType.INT_TYPE, TokenType.DOUBLE_TYPE, TokenType.BOOL_TYPE, TokenType.STRING_TYPE, TokenType.NULL_VAL, TokenType.NEW, TokenType.LPAREN, TokenType.INT_VAL, TokenType.DOUBLE_VAL, TokenType.BOOL_VAL, TokenType.STRING_VAL, TokenType.ID]):
+                        args.append(self.expr())
+                        while not self.match(TokenType.RPAREN):
+                            self.eat(TokenType.COMMA, "expecting comma")
+                            args.append(self.expr())
+                    if len(path) == 1:
+                        args.insert(0, VarRValue(path))
+                    else:
+                        args.insert(0, VarRValue(path[:-1]))
+                    self.eat(TokenType.RPAREN, "expecting closing paren")
+                    return CallExpr(fun_name, args)
             if self.match(TokenType.LBRACKET):
                 self.advance()
                 if self.match(TokenType.INT_VAL) or self.match(TokenType.ID):

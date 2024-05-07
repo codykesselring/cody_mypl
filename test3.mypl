@@ -1,0 +1,22 @@
+class Room{
+    double length;
+    double width;
+    double height;
+
+    double calculate_area(){
+        return this.length * this.width;
+    }
+    double calculate_volume(){
+        return this.length * this.height * this.width;
+    }
+}
+void main(){
+    Room my_bedroom = new Room(14.0, 10.0, 9.0);
+    double room_area = my_bedroom.calculate_area();
+    double room_volume = my_bedroom.calculate_volume();
+    print("The area of my_bedroom is: ");
+    print(room_area);
+    print(" feet\nThe volume of my_bedroom is: ");
+    print(room_volume);
+    print(" feet");
+}

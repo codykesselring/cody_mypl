@@ -1,0 +1,17 @@
+class Test{
+    string name; 
+    int id;
+    void increase_id(int x){
+        this.id = this.id + x;
+    }
+}
+void main(){
+    Test obj = new Test("Donquavious", 123);
+    print(obj.id);
+    print("\n");
+    obj.increase_id(4);
+    print(obj.id);
+}
+
+
+

@@ -135,7 +135,6 @@ class SemanticChecker(Visitor):
                 self.error(f"Return type '{self.curr_type}' does not match the function's declared return type '{self.func_return_type}", fun_def.return_type.type_name)
 
 
-        
     def visit_return_stmt(self, return_stmt):
         # TODO
          return_stmt.expr.accept(self)
@@ -242,7 +241,6 @@ class SemanticChecker(Visitor):
                 self.error("if condition must have bool type", self.curr_type.type_name)
             
             self.symbol_table.push_environment()
-
             for stmt in else_if.stmts:
                 stmt.accept(self)
             self.symbol_table.pop_environment()

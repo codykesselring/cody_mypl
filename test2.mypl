@@ -9,6 +9,7 @@ class Person{
     print(" years old!");
   }
 }
+
 void main(){
   array Person people = new Person[2];
   people[0] = new Person("Cody", 20);
