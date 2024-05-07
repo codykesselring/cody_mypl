@@ -1,5 +1,19 @@
-struct S1 {double val; array S1 s;}
-void main() {
-  S1 p = new S1(null, null);
-  p.s[0].s.val = 5.0;
+
+class Person{
+  string name;
+  int age;
+  void print_info(){
+    print(this.name);
+    print(" is ");
+    print(this.age);
+    print(" years old!");
+  }
+}
+void main(){
+  array Person people = new Person[2];
+  people[0] = new Person("Cody", 20);
+  people[1] = new Person("Johnquavious", 103);
+  people[0].print_info();
+  print(" ");
+  people[1].print_info();
 }

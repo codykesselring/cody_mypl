@@ -1,13 +1,5 @@
 class Test{
     string name; 
-    int id; 
-    
-    void nothing(){
-        print("AAAAAHHH");
-    }
-}
-class Test2{
-    string name; 
     int id;
     
     void farkle(){
@@ -18,14 +10,20 @@ class Test2{
     }
 }
 
+struct Animal{
+    string type;
+    int age;
+}
+
 void main(){
     Test obj = new Test("John", 123);
-    Test2 lobject = new Test2("John", 123);
+    Animal cow = new Animal("cow", 12);
 
-    //print(obj.name);
+    print(obj.name);
+    print("\n");
     print(obj.id);
     print("\n");
-    lobject.farkle();
-    lobject.add_id(2, 1);
-    print(lobject.id);
+    obj.farkle();
+    obj.add_id(2, 1);
+    print(obj.id);
 }
