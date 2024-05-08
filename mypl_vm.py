@@ -368,10 +368,10 @@ class VM:
                 value = frame.operand_stack.pop()
                 index = frame.operand_stack.pop()
                 oid = frame.operand_stack.pop()
-                if value == None or index == None or oid == None:
-                    self.error("array access can't have None type")
+                if index == None or oid == None:
+                    self.error(f"array access can't have None type, value={value}, index={index}, oid={oid}")
                 elif oid not in self.array_heap or index < 0 or index >= len(self.array_heap[oid]):
-                    self.error(f"Invalid index or object ID for array access {value} {index} {oid}")
+                    self.error(f"Invalid index or object ID for array access {value} {index} {oid} {len(self.array_heap[oid])}")
                 self.array_heap[oid][index] = value
             
             elif instr.opcode == OpCode.GETI:

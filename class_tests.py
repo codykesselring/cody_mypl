@@ -252,3 +252,42 @@ def test_array_of_classes_output(capsys):
     captured = capsys.readouterr()
     print(captured.out)
     assert captured.out == 'Cody is 20 years old! Johnquavious is 103 years old!'
+
+def test_method_assign_expr(capsys):
+    program = (
+        'class Room{\n'
+        '    double length;\n'
+        '    double width;\n'
+        '    double calculate_area(){\n'
+        '        return this.length * this.width;\n'
+        '    }\n'
+        '}\n'
+        'void main(){\n'
+        '    Room my_bedroom = new Room(14.0, 10.0);\n'
+        '    double room_area = my_bedroom.calculate_area();\n'
+        '    print("The area of my_bedroom is: ");\n'
+        '    print(room_area);\n'
+        '}\n'
+    )
+    build(program).run()
+    captured = capsys.readouterr()
+    print(captured.out)
+    assert captured.out == 'The area of my_bedroom is: 140.0'
+
+def test_recursive_method_field(capsys):
+    program = (
+        'class Node {\n'
+        '    int data;\n'
+        '    array Node next;\n'
+        '}\n'
+        'void main(){\n'
+        '    Node root = new Node(20, new Node[2]);\n'
+        '    root.next[0] = new Node(10, new Node[1]);\n'
+        '    print(root.data);\n'
+        '    print(root.next[0].data);\n'
+        '}\n'
+    )
+    build(program).run()
+    captured = capsys.readouterr()
+    print(captured.out)
+    assert captured.out == '2010'

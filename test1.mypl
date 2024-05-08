@@ -1,17 +1,21 @@
-class Test{
-    string name; 
-    int id;
-    void increase_id(int x){
-        this.id = this.id + x;
+class Car{
+    string brand;   
+    string model;
+    int year;
+    void print_contents(){
+        print("Brand: ");
+        print(this.brand);
+        print("Model: ");
+        print(this.model);
+        print("Year: ");
+        print(this.year);
     }
 }
+
 void main(){
-    Test obj = new Test("Donquavious", 123);
-    print(obj.id);
-    print("\n");
-    obj.increase_id(4);
-    print(obj.id);
+    Car carObj;
+    carObj.brand = "BMW";
+    //carObj.model = "X5";
+    //carObj.year = 1999;
+    //carObj.print_contents();
 }
-
-
-

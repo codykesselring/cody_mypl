@@ -238,3 +238,31 @@ class IfStmt(Stmt):
     def accept(self, visitor):
         visitor.visit_if_stmt(self)
 
+"""var_name = assign_stmt.lvalue[0].var_name.lexeme
+index = self.var_table.get(var_name)
+if assign_stmt.lvalue[0].array_expr:
+    # If it's an array element, handle it differently
+    self.add_instr(LOAD(index))
+    assign_stmt.lvalue[0].array_expr.accept(self)
+    self.add_instr(GETI())
+else:
+    self.add_instr(LOAD(index))
+
+for var_ref in assign_stmt.lvalue[1:-1]: #skips first and last var_ref
+    field_name = var_ref.var_name.lexeme
+    self.add_instr(GETF(field_name))
+    if var_ref.array_expr:
+        var_ref.array_expr.accept(self)
+        self.add_instr(GETI())
+
+
+
+assign_field = assign_stmt.lvalue[-1].var_name.lexeme
+if assign_stmt.lvalue[-1].array_expr:
+    self.add_instr(GETF(assign_field))
+    assign_stmt.lvalue[-1].array_expr.accept(self)
+    assign_stmt.expr.accept(self)
+    self.add_instr(SETI())
+else:
+    assign_stmt.expr.accept(self)
+    self.add_instr(SETF(assign_field))"""

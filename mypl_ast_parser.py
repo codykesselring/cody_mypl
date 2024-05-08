@@ -438,11 +438,11 @@ class ASTParser:
                 self.advance()
                 var_name = self.curr_token
                 self.eat(TokenType.ID, "expecting var id")
-                if self.match(TokenType.LBRACKET): # for call expression on right side of assign_stmt
+                """if self.match(TokenType.LBRACKET): # for call expression on right side of assign_stmt
                     self.advance()
                     array_expr = self.expr()
-                    self.eat(TokenType.RBRACKET, "expecting right bracket")
-                elif self.match(TokenType.LPAREN):
+                    self.eat(TokenType.RBRACKET, "expecting right bracket")"""
+                if self.match(TokenType.LPAREN):
                     self.advance()
                     fun_name = var_name
                     args = []
