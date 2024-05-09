@@ -107,6 +107,23 @@ def test_array_of_classes_semantics():
     ))
     ASTParser(Lexer(in_stream)).parse().accept(SemanticChecker())
 
+def test_multiple_method_params_semantics(capsys):
+    in_stream = FileWrapper(io.StringIO(
+        'class Test{\n'
+        '  int x;\n'
+        '  void add_mult(int y, int z){\n'
+        '    this.x = this.x + y;\n'
+        '    this.x = this.x * z;\n'
+        '  }\n'
+        '}\n'
+        'void main(){\n'
+        '  Test obj = new Test(4);\n'
+        '  obj.add_mult(3, 2);\n'
+        '  print(obj.x);\n'
+        '}\n'
+    ))
+    ASTParser(Lexer(in_stream)).parse().accept(SemanticChecker())
+
 def test_bad_class_method_use():
     in_stream = FileWrapper(io.StringIO(
         'class Test{\n'
@@ -120,6 +137,35 @@ def test_bad_class_method_use():
         '  Test obj = new Test(4);\n'
         '  Test2 obj2 = new Test2(5);\n'
         '  obj2.add(3);\n'
+        '}\n'))
+    with pytest.raises(MyPLError) as e:
+        ASTParser(Lexer(in_stream)).parse().accept(SemanticChecker())
+    assert str(e.value).startswith('Static Error:')
+
+def test_bad_class_init_field_type():
+    in_stream = FileWrapper(io.StringIO(
+        'class myClass{\n'
+        '    int id;\n'
+        '    string woman;\n'
+        '}\n'
+        'void main(){\n'
+        '    myClass employee = new myClass(1356423, woman);\n'
+        '}\n'))
+    with pytest.raises(MyPLError) as e:
+        ASTParser(Lexer(in_stream)).parse().accept(SemanticChecker())
+    assert str(e.value).startswith('Static Error:')
+
+def test_bad_method_argument():
+    in_stream = FileWrapper(io.StringIO(
+        'class myClass{\n'
+        '    int id;\n'
+        '    void increase_id(int x){\n'
+        '        this.id = this.id + x;\n'
+        '    }\n'
+        '}\n'
+        'void main(){\n'
+        '    myClass employee = new myClass(123, "woman");\n'
+        '    employee.increase_id(3.9);\n'
         '}\n'))
     with pytest.raises(MyPLError) as e:
         ASTParser(Lexer(in_stream)).parse().accept(SemanticChecker())
@@ -291,3 +337,4 @@ def test_recursive_method_field(capsys):
     captured = capsys.readouterr()
     print(captured.out)
     assert captured.out == '2010'
+

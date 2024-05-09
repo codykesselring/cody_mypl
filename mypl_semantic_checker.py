@@ -107,7 +107,7 @@ class SemanticChecker(Visitor):
         # TODO
         fun_name = fun_def.fun_name.lexeme
         self.func_return_type = fun_def.return_type
-        if fun_def.return_type.type_name.lexeme not in BASE_TYPES and fun_def.return_type.type_name.lexeme != 'void':
+        if fun_def.return_type.type_name.lexeme not in BASE_TYPES and fun_def.return_type.type_name.lexeme != 'void' and fun_def.return_type.type_name.lexeme not in self.structs:
             self.error("bad function return type", fun_def.return_type.type_name)
         self.functions[fun_name] = fun_def
         self.symbol_table.push_environment()

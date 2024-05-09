@@ -5,17 +5,15 @@ class Car{
     void print_contents(){
         print("Brand: ");
         print(this.brand);
-        print("Model: ");
+        print("\nModel: ");
         print(this.model);
-        print("Year: ");
+        print("\nYear: ");
         print(this.year);
     }
 }
 
 void main(){
-    Car carObj;
+    Car carObj = new Car("BMW", "X5", 1999);
     carObj.brand = "BMW";
-    //carObj.model = "X5";
-    //carObj.year = 1999;
-    //carObj.print_contents();
+    carObj.print_contents();
 }

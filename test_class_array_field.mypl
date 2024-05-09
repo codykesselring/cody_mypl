@@ -8,4 +8,3 @@ void main(){
     root.next[1] = new Node(5, null);
     print(root.next[0].data);
 }
-

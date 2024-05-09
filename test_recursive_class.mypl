@@ -1,0 +1,34 @@
+
+class T1 {
+  int x;
+  int y;
+  void print_contents(){
+    print(this.x); print("\n");
+    print(this.y); print("\n");
+  }
+}
+
+class T2 {
+  T1 t1;
+}
+
+class T3 {
+  T2 t2;
+}
+
+
+void main() {
+
+  T1 ref_1 = new T1(0, 1);
+
+  ref_1.print_contents();
+
+  T3 ref_2 = new T3(null);
+  ref_2.t2 = new T2(null);
+  ref_2.t2.t1 = new T1(null, null);
+  ref_2.t2.t1.x = 5;
+  ref_2.t2.t1.y = 3;
+
+  ref_2.t2.t1.x.print_contents();
+
+}
