@@ -6,5 +6,7 @@ void main(){
     Node root = new Node(20, new Node[2]);
     root.next[0] = new Node(10, new Node[1]);
     root.next[1] = new Node(5, null);
+    print(root.data);
     print(root.next[0].data);
+    print(root.next[1].data);
 }

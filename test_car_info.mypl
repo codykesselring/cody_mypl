@@ -14,6 +14,5 @@ class Car{
 
 void main(){
     Car carObj = new Car("BMW", "X5", 1999);
-    carObj.brand = "BMW";
     carObj.print_contents();
 }
