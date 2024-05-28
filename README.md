@@ -7,3 +7,50 @@ There are test programs in the directory that display the capabilities of my lan
 Tree Values: 1 2 5 7 10 12 13 14 15  
 Tree Height: 5 into the terminal  
 
+Too see what the opcode code generation looks like for a given program, add --ir to the end of the command on the command line like so: 'python mypl.py examples/exec-9-fib.mypl --r'  
+This will output the list of low-level commands that represent the high level code, this is what the opcodes look for examples/exec-9-fib.mypl:  
+Frame fib  
+  <built-in function id>: OpCode.STORE(0)  
+  <built-in function id>: OpCode.LOAD(0)  
+  <built-in function id>: OpCode.PUSH(1)  
+  <built-in function id>: OpCode.CMPLE()  
+  <built-in function id>: OpCode.JMPF(8)  
+  <built-in function id>: OpCode.LOAD(0)  
+  <built-in function id>: OpCode.RET()  
+  <built-in function id>: OpCode.JMP(19)  
+  <built-in function id>: OpCode.LOAD(0)  
+  <built-in function id>: OpCode.PUSH(2)  
+  <built-in function id>: OpCode.SUB()  
+  <built-in function id>: OpCode.CALL(fib)  
+  <built-in function id>: OpCode.LOAD(0)  
+  <built-in function id>: OpCode.PUSH(1)  
+  <built-in function id>: OpCode.SUB()  
+  <built-in function id>: OpCode.CALL(fib)  
+  <built-in function id>: OpCode.ADD()  
+  <built-in function id>: OpCode.RET()  
+  <built-in function id>: OpCode.NOP()  
+  <built-in function id>: OpCode.PUSH()  
+  <built-in function id>: OpCode.RET()  
+
+Frame main  
+  <built-in function id>: OpCode.PUSH(0)  
+  <built-in function id>: OpCode.STORE(0)  
+  <built-in function id>: OpCode.PUSH(26)  
+  <built-in function id>: OpCode.STORE(1)  
+  <built-in function id>: OpCode.LOAD(0)  
+  <built-in function id>: OpCode.LOAD(1)  
+  <built-in function id>: OpCode.CMPLT()  
+  <built-in function id>: OpCode.JMPF(18)  
+  <built-in function id>: OpCode.LOAD(0)  
+  <built-in function id>: OpCode.LOAD(0)  
+  <built-in function id>: OpCode.CALL(fib)  
+  <built-in function id>: OpCode.CALL(print_result)  
+  <built-in function id>: OpCode.LOAD(0)  
+  <built-in function id>: OpCode.PUSH(1)  
+  <built-in function id>: OpCode.ADD()  
+  <built-in function id>: OpCode.STORE(0)  
+  <built-in function id>: OpCode.JMP(4)  
+  <built-in function id>: OpCode.NOP()  
+  <built-in function id>: OpCode.PUSH()  
+  <built-in function id>: OpCode.RET()  
+
