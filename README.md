@@ -1,40 +1,9 @@
-To run programs on the myPL interpreter, type 'python mypl.py [path/file_name]' into the command line, which will run the program; console outputs will be displayed in the terminal.
+# MyPL Language Overview  
+This repository contains a python interpreter of my own programming language 'MyPl', which is syntactically similar to java and c++ with the filetype .mypl. This interpretter creates a token stream in the lexer, passes the token stream into the paser, which looks for syntax errors and creates an abstract search tree that is passed into the semantic checker that primarily looks for type errors. Once the front end of the compilation pipeline is complete, the abstract search tree is passed into a code generator that simplifies the code into opcodes that dissects the program and takes it down a level of abstraction, these are down using a stack system instead of assembly. Once the code generation is complete, it is then executed on a VM. 
+# Executing Files
+To run programs on the myPL interpreter, type 'python mypl.py [path/file_name]' into the command line, which will run the program; console outputs will be displayed in the terminal.  
 
-<<<<<<< HEAD
-There are test programs in the directory that display the capabilities of classes, these are named 'test_[rest].mypl' for example: 'python mypl.py test_class_bst.mypl' will execute the file test_class_bst.mypl and output Tree Values: 1 2 5 7 10 12 13 14 15 Tree Height: 5 into the terminal
+There are test programs in the directory that display the capabilities of my languae, these files are inside the 'examples' folder and can be ran like so in the command line: 'python mypl.py exec-17-tree.mypl' will execute the file exec-17-tree.mypl and output  
+Tree Values: 1 2 5 7 10 12 13 14 15  
+Tree Height: 5 into the terminal  
 
-For my myPL addition I chose classes, which are syntactically defined like this:
-
-![image](https://github.com/Gonzaga-CPSC-326-Spring-2024/project-codykesselring/assets/115512973/720790c2-5c05-4d74-a8d4-a0d5ac30f68a)
-
-which is similar to the initialization and definition of structs, except with associated methods within the definition that can be called elsewhere.
-
-video explanation link: https://youtu.be/zx_h64VoTJc 
-=======
-There are test programs in the directory that display the capabilities of classes, these are named 'test_[rest].mypl'
-for example:
-'python mypl.py test_class_bst.mypl' will execute the file test_class_bst.mypl and output
-Tree Values: 1 2 5 7 10 12 13 14 15 
-Tree Height: 5
-into the terminal
-
-
-For my myPL addition I chose classes, which are syntactically defined like this:
-class myClass{
-    double test0;
-    int test1;
-    void example_method(){
-      print(this.test1)
-    }
-    int example_return(int x){
-      this.test1 = this.test1 + x;
-      return this.test1
-    }
-}
-void main(){
-    myClass example = new myClass(14.0, 10);
-    int assign = example.example_return();
-    example.example_method();
-}
-which is similar to the initialization and definition of structs, except with associated methods within the definition that can be called elsewhere.
->>>>>>> b84a1f7d8aeac269cb8ae912145faeb10501b1c2
