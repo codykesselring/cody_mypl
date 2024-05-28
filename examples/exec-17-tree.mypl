@@ -1,13 +1,25 @@
-class Node {
+//----------------------------------------------------------------------
+// tree node that holds an int value
+//----------------------------------------------------------------------
+struct Node {
   int value;
   Node left;
   Node right;
 }
 
+
+//----------------------------------------------------------------------
+// create a new tree
+//----------------------------------------------------------------------
 Node make_tree(int val) {
   return new Node(val, null, null);
 }
 
+
+//----------------------------------------------------------------------
+// insert a value into the given tree
+// assumes root is not nil 
+//----------------------------------------------------------------------
 void insert(Node root, int val) {
   if (root == null) {
     return null;
@@ -30,6 +42,10 @@ void insert(Node root, int val) {
   }
 }
 
+
+//----------------------------------------------------------------------
+// print out the tree in sorted order
+//----------------------------------------------------------------------
 void print_tree(Node root) {
   if (root != null) {
     print_tree(root.left);
@@ -39,6 +55,10 @@ void print_tree(Node root) {
   }
 }
 
+
+//----------------------------------------------------------------------
+// get the height of the tree
+//----------------------------------------------------------------------
 int height(Node root) {
   if (root == null) {
     return 0;
@@ -55,9 +75,20 @@ int height(Node root) {
   }
 }
 
-
+//
+// main
+//
 void main() {
+
+  //
+  // create a tree and print it
+  // should print ...
+  //   Tree Values: 1 2 5 7 10 12 13 14 15
+  //   Tree Height: 5
+  //
+
   Node tree = make_tree(10);
+
   insert(tree, 5);
   insert(tree, 15);
   insert(tree, 2);

@@ -453,6 +453,7 @@ class SemanticChecker(Visitor):
                 if self.curr_type.type_name.token_type != TokenType.INT_TYPE:
                     self.error(f"int to double must have integer input, type = {self.curr_type.type_name}", None)
                 self.curr_type = DataType(False, Token(TokenType.DOUBLE_TYPE, 'double', call_expr.fun_name.line, call_expr.fun_name.column))
+                
         elif fun_name == 'dtos':
             if len(args) != 1:
                 self.error("dtos must have 1 argument", None)
