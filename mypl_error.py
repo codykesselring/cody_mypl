@@ -1,9 +1,8 @@
 """Simple class for representing MyPL lexer, parser, static checker,
 and runtime errors.
 
-NAME: S. Bowers
+NAME: Cody Kesselring
 DATE: Spring 2024
-CLASS: CPSC 326
 
 """
 

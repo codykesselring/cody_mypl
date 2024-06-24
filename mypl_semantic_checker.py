@@ -1,8 +1,7 @@
 """Semantic Checker Visitor for semantically analyzing a MyPL program.
 
-NAME: <your name here>
+NAME: Cody Kesselring
 DATE: Spring 2024
-CLASS: CPSC 326
 
 """
 

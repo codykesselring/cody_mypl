@@ -1,8 +1,7 @@
 """Initial main program driver for MyPL.
 
-NAME: S. Bowers
+NAME: Cody Kesselring
 DATE: Spring 2024
-CLASS: CPSC 326
 
 """
 

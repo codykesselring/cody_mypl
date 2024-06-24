@@ -1,8 +1,8 @@
 """MyPL simple syntax checker (parser) implementation.
 
-NAME: <your-name-here>
+NAME: Cody Kesselring
 DATE: Spring 2024
-CLASS: CPSC 326
+
 """
 
 from mypl_error import *

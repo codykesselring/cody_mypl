@@ -1,9 +1,8 @@
 """Implementation of Frame Templates, Frames, and Instructions for the
 MyPL VM.
 
-NAME: S. Bowers
+NAME: Cody Kesselring
 DATE: Spring 2024
-CLASS: CPSC 326
 
 """
 

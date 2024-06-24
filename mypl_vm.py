@@ -1,8 +1,7 @@
 """Implementation of the MyPL Virtual Machine (VM).
 
-NAME: <your name here>
+NAME: Cody Kesselring
 DATE: Spring 2024
-CLASS: CPSC 326
 
 """
 

@@ -1,8 +1,7 @@
 """OpCodes enumerated values for the MyPL VM instructions.
 
-NAME: S. Bowers
+NAME: Cody Kesselring
 DATE: Spring 2024
-CLASS: CPSC 326
 
 """
 from enum import Enum

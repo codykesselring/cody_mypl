@@ -1,8 +1,7 @@
 """MyPL AST classes.
 
-NAME: S. Bowers
+NAME: Cody Kesselring
 DATE: Spring 2024
-CLASS: CPSC 326
 
 """
 

@@ -1,9 +1,8 @@
 """MyPL Variable Table for managing variable to offset mappings during
 code generation.
 
-NAME: S. Bowers
+NAME: Cody Kesselring
 DATE: Spring 2024
-CLASS: CPSC 326
 
 """
 
